@@ -2,17 +2,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <pwd.h>
 
-#define COMLEN 1024
+#define COMLEN   1024
+#define PASSLEN  100
 
-int rootexec(const char * restrict com);
-int compare_password(const char *pass);
-
+int exec(const char * restrict com, int uid);
+int compare_password(const char *pass, int uid);
+char *getcom(char *dst, char **src);
 int
 main(int argc, char **argv)
 {
   /* INIT */
-  char *com;
+  char *com, *pass;
+  int user_id;
 
   /* NOT ENOUGH ARGUMENTS */
   if (argc == 1) {
@@ -20,36 +23,50 @@ main(int argc, char **argv)
     return 1;
   }
 
-  /* GET COMMAND */
-  if (compare_password(getpass("Root password: "))) { /* RUN */ 
+  /* CHECK ARGUMENTS */
+  user_id = 0;
+  if (*(*++argv+1) == 'u') {
+    user_id = atoi(*++argv);
+    argv++;
+  }
+
+  /* GET PASS */
+  pass = malloc(PASSLEN);
+  pass = NULL;
+  if (user_id != getuid()) { /* IF NOT USERSELF */
+    char prompt[256];
+    snprintf(prompt, sizeof(prompt), "%s password: ", getpwuid(user_id)->pw_name);
+    pass = getpass(prompt);
+  }
+
+  /* RUN */
+  if (compare_password(pass, user_id)) {
     com = malloc(COMLEN);
+    getcom(com, argv);
 
-    strncpy(com, "", 1);
-    for (argv++; *argv && strlen(com) < COMLEN;) {
-      strncat(com, *argv++, COMLEN - strlen(com));
-      strncat(com, " ", COMLEN - strlen(com));
-    }
-
-    if (!rootexec(com)) {
-      free(com);
+    if (!exec(com, user_id)) {
+      free(com); free(pass);
       return 1;
     }
 
     free(com);
+    free(pass);
     return 0;
   } 
-    
+  
+  /* FAIL */
   fputs("flex: Authentication failed\n", stderr);
+  free(pass);
   return 1;
 }
 
 
 int 
-rootexec(const char *com) 
+exec(const char *com, int uid) 
 {
   /* MAKE AS ROOT */
-  if (setuid(0) == -1) {
-    fputs("Cannot be root\n", stderr);
+  if (setuid(uid) == -1) {
+    fprintf(stderr, "Cannot run as %s\n", getpwuid(uid)->pw_name);
     return 0;
   }
 
@@ -58,7 +75,7 @@ rootexec(const char *com)
 
   /* RETURN TO DEFAULT USER */
   if (setuid(getuid()) == -1) {
-    fputs("Cannot make user not root\n", stderr);
+    fputs("Cannot return user not root\n", stderr);
     return 0;
   }
 
@@ -72,15 +89,18 @@ rootexec(const char *com)
 #define equal(s1,s2)  (strcmp(s1, s2) == 0)
 
 int 
-compare_password(const char *pass) 
+compare_password(const char *pass, int uid) 
 {
+  if (!pass)
+    return 1;
+
   struct spwd *root_entry;
   const char *stored_hash;
   char salt[256];
   const char *hashed_input;
 
   /* GET ROOT'S SHADOW ENTRY (REQUIRES ROOT PRIVILEGES) */
-  if (!(root_entry = getspnam("root"))) {
+  if (!(root_entry = getspnam( getpwuid(uid)->pw_name ))) {
     perror("Cannot compare");
     return 0;
   }
@@ -97,4 +117,18 @@ compare_password(const char *pass)
   }
 
   return equal(hashed_input, stored_hash);
+}
+
+
+
+char 
+*getcom(char *dst, char **src)
+{
+  strncpy(dst, "", 1);
+  for (; *src && strlen(dst) < COMLEN;) {
+    strncat(dst, *src++, COMLEN - strlen(dst));
+    strncat(dst, " ", COMLEN - strlen(dst));
+  }
+
+  return dst;
 }

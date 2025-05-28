@@ -1,5 +1,8 @@
 # Info  
-FLEX - FLexible Elevated eXecution. This is a simple program that gives temporary root rights(like sudo or doas, but only as root)  
+FLEX - FLexible Elevated eXecution. This is a simple program that gives temporary rights of other user(like sudo or doas, but smaller)  
+  
+# Updates  
+Added -u flag(run as other user, needs user id, default is root)  
   
 # Installation guide  
 ```bash  
