@@ -4,6 +4,8 @@
 #include <string.h>
 #include <pwd.h>
 
+#define uid_to_name(uid) (getpwuid(uid)->pw_name)
+
 #define COMLEN   1024
 #define PASSLEN  100
 
@@ -35,7 +37,7 @@ main(int argc, char **argv)
   pass = NULL;
   if (user_id != getuid()) { /* IF NOT USERSELF */
     char prompt[256];
-    snprintf(prompt, sizeof(prompt), "%s password: ", getpwuid(user_id)->pw_name);
+    snprintf(prompt, sizeof(prompt), "%s password: ", uid_to_name(user_id));
     pass = getpass(prompt);
   }
 
@@ -66,7 +68,7 @@ exec(const char *com, int uid)
 {
   /* MAKE AS ROOT */
   if (setuid(uid) == -1) {
-    fprintf(stderr, "Cannot run as %s\n", getpwuid(uid)->pw_name);
+    fprintf(stderr, "Cannot run as %s\n", uid_to_name(uid));
     return 0;
   }
 
