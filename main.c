@@ -57,7 +57,7 @@ main(int argc, char **argv)
   } 
   
   /* FAIL */
-  fputs("flex: Authentication failed\n", stderr);
+  fputs("lex: authentication failed\n", stderr);
   free(pass);
   return 1;
 }
@@ -102,7 +102,7 @@ compare_password(const char *pass, int uid)
   const char *hashed_input;
 
   /* GET ROOT'S SHADOW ENTRY (REQUIRES ROOT PRIVILEGES) */
-  if (!(root_entry = getspnam( getpwuid(uid)->pw_name ))) {
+  if (!(root_entry = getspnam( uid_to_name(uid) ))) {
     perror("Cannot compare");
     return 0;
   }
