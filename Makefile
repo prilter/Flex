@@ -6,7 +6,7 @@ endif
 
 # VARIABLES
 COMPILER  = gcc
-TARGET    = bin/flex
+TARGET    = bin/lex
 SRC       = main.c 
 LIBS      = -lcrypt 
 CFLAGS    = 

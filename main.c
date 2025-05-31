@@ -21,7 +21,7 @@ main(int argc, char **argv)
 
   /* NOT ENOUGH ARGUMENTS */
   if (argc == 1) {
-    fputs("usage: flex [command] [command args]\n", stderr);
+    fputs("usage: lex [command] [command args]\n", stderr);
     return 1;
   }
 
