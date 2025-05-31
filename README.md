@@ -1,5 +1,5 @@
 # Info  
-FLEX - Legal Elevated eXecution. This is a simple program that gives temporary rights of other user(like sudo or doas, but smaller and simpler)  
+LEX - Legal Elevated eXecution. This is a simple program that gives temporary rights of other user(like sudo or doas, but smaller and simpler)  
   
 # Updates  
 Added -u flag(run as other user, needs user id, default is root)  
